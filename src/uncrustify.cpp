@@ -541,25 +541,48 @@ int main(int argc, char *argv[])
    {
       cfg_file = p_arg;
    }
-   else if (!unc_getenv("UNCRUSTIFY_CONFIG", cfg_file))
+   else
    {
-      // Try to find a config file at an alternate location
-      string home;
+      // Try to find a config file at CWD first
+      struct stat       tmp_stat  = {};
+      const std::string cwd_file1 = "./uncrustify.cfg";
+      const std::string cwd_file2 = "./.uncrustify.cfg";
 
-      if (unc_homedir(home))
+      if (stat(cwd_file1.c_str(), &tmp_stat) == 0)
       {
-         struct stat tmp_stat = {};
+         cfg_file = cwd_file1;
+      }
+      else if (stat(cwd_file2.c_str(), &tmp_stat) == 0)
+      {
+         cfg_file = cwd_file2;
+      }
+      else
+      {
+         // Try to find a config file in $HOME
+         std::string home;
 
-         const auto  path0 = home + "/.uncrustify.cfg";
-         const auto  path1 = home + "/uncrustify.cfg";
-
-         if (stat(path0.c_str(), &tmp_stat) == 0)
+         if (unc_homedir(home))
          {
-            cfg_file = path0;
+            const auto home_path0 = home + "/.uncrustify.cfg";
+            const auto home_path1 = home + "/uncrustify.cfg";
+
+            if (stat(home_path0.c_str(), &tmp_stat) == 0)
+            {
+               cfg_file = home_path0;
+            }
+            else if (stat(home_path1.c_str(), &tmp_stat) == 0)
+            {
+               cfg_file = home_path1;
+            }
+            else
+            {
+               // Fall back to env variable
+               unc_getenv("UNCRUSTIFY_CONFIG", cfg_file);
+            }
          }
-         else if (stat(path1.c_str(), &tmp_stat) == 0)
+         else
          {
-            cfg_file = path1;
+            unc_getenv("UNCRUSTIFY_CONFIG", cfg_file);
          }
       }
    }
