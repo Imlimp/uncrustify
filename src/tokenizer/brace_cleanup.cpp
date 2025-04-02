@@ -1117,7 +1117,8 @@ static bool check_complex_statements(ParsingFrame &frm, Chunk *pc, const BraceSt
    }
 
    // Check for "constexpr" after CT_IF or CT_ELSEIF
-   if (  frm.top().GetStage() == E_BraceStage::PAREN1
+   if (  (pc->IsNot(CT_PAREN_OPEN) && !(  language_is_set(lang_flag_e::LANG_CS)
+                                       && frm.top().GetOpenToken() == CT_SWITCH && pc->Is(CT_BRACE_OPEN)))
       && (  frm.top().GetOpenToken() == CT_IF
          || frm.top().GetOpenToken() == CT_ELSEIF)
       && pc->Is(CT_CONSTEXPR))
